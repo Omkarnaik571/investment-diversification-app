@@ -85,22 +85,22 @@ const getResponsiveDimensions = () => {
     pieChart: {
       innerRadius: isMobile ? 45 : isTablet ? 70 : 100,
       outerRadius: isMobile ? 75 : isTablet ? 110 : 160,
-      labelRadius: isMobile ? 1.3 : isTablet ? 1.2 : 1.4,
+      labelRadius: isMobile ? 1.4 : isTablet ? 1.3 : 1.4,
       centerTextSize: isMobile ? 'text-sm' : 'text-2xl',
-      labelBoxWidth: isMobile ? 110 : isTablet ? 120 : 140,
-      fontSize: isMobile ? 10 : isTablet ? 11 : 12,
-      labelSpacing: isMobile ? 30 : 20
+      labelBoxWidth: isMobile ? 140 : isTablet ? 160 : 180,
+      fontSize: isMobile ? 11 : isTablet ? 12 : 13,
+      labelSpacing: isMobile ? 25 : 20
     },
     barChart: {
       margin: {
-        top: 10,
-        right: isMobile ? 80 : isTablet ? 120 : 200,
-        left: isMobile ? 90 : isTablet ? 120 : 160,
-        bottom: 10
+        top: 20,
+        right: isMobile ? 140 : isTablet ? 160 : 200,
+        left: isMobile ? 100 : isTablet ? 120 : 160,
+        bottom: 20
       },
-      barSize: isMobile ? 20 : isTablet ? 25 : 30,
-      fontSize: isMobile ? 10 : isTablet ? 11 : 12,
-      labelWidth: isMobile ? 80 : isTablet ? 100 : 150
+      barSize: isMobile ? 25 : isTablet ? 30 : 35,
+      fontSize: isMobile ? 11 : isTablet ? 12 : 13,
+      labelWidth: isMobile ? 90 : isTablet ? 110 : 150
     }
   };
 };
@@ -727,26 +727,25 @@ const App = () => {
                         const textAnchor = x > cx ? 'start' : 'end';
                         const isLeftSide = x <= cx;
 
-                        // Adjust box width for mobile
-                        const boxWidth = window.innerWidth < 768 ? 90 : dimensions.pieChart.labelBoxWidth;
+                        const boxWidth = dimensions.pieChart.labelBoxWidth;
                         const boxX = isLeftSide ? x - boxWidth : x;
-                        const spacing = window.innerWidth < 768 ? 15 : dimensions.pieChart.labelSpacing;
-                        const fontSize = window.innerWidth < 768 ? 8 : dimensions.pieChart.fontSize;
+                        const spacing = dimensions.pieChart.labelSpacing;
+                        const fontSize = dimensions.pieChart.fontSize;
 
                         return (
                           <g>
                             <rect
                               x={boxX - (isLeftSide ? 0 : 10)}
-                              y={y - spacing}
+                              y={y - spacing * 1.5}
                               width={boxWidth}
-                              height={spacing * 2}
+                              height={spacing * 3}
                               fill="#1E1E1E"
-                              fillOpacity={0.9}
+                              fillOpacity={0.95}
                               rx={4}
                             />
                             <text
                               x={boxX + (isLeftSide ? 5 : -5)}
-                              y={y - spacing/2}
+                              y={y - spacing}
                               fill={COLORS.chartColors[index % COLORS.chartColors.length]}
                               textAnchor={textAnchor}
                               fontSize={fontSize}
@@ -765,7 +764,7 @@ const App = () => {
                             </text>
                             <text
                               x={boxX + (isLeftSide ? 5 : -5)}
-                              y={y + spacing/2}
+                              y={y + spacing}
                               fill={COLORS.chartColors[index % COLORS.chartColors.length]}
                               textAnchor={textAnchor}
                               fontSize={fontSize}
@@ -879,14 +878,12 @@ const App = () => {
                               dataKey={(entry) => {
                                 const percent = entry.value.toFixed(1);
                                 const amount = formatIndianCurrency(entry.amount);
-                                return window.innerWidth < 768 
-                                  ? `${percent}% | ₹${amount}`
-                                  : `${percent}% | ₹${amount}`;
+                                return `${percent}% | ₹${amount}`;
                               }}
                               position="right"
                               fill="#fff"
                               fontSize={dimensions.barChart.fontSize}
-                              offset={10}
+                              offset={15}
                             />
                           </Bar>
                         </ComposedChart>
