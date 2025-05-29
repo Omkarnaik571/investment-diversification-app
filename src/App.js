@@ -1,81 +1,237 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Plus, X, BarChart2, DollarSign, Percent } from "lucide-react";
+import React, { useState, useEffect, useCallback } from "react";
+import { Plus, X, DollarSign, Save, FolderOpen, Trash2, RefreshCw } from "lucide-react";
+import { PieChart, Pie, Cell, Sector, ComposedChart, Bar, XAxis, YAxis, CartesianGrid, Treemap, LabelList, ResponsiveContainer, Tooltip } from 'recharts';
 
-// Main App component
+// Custom color palette
+const COLORS = {
+  primary: '#1E88E5',       // Vibrant Blue
+  secondary: '#00C853',     // Fresh Green
+  accent: '#FF4081',        // Pink Accent
+  neutral: '#424242',       // Dark Grey
+  surface: '#ffffff',
+  background: '#F5F7FA',
+  chartColors: [
+    '#1E88E5',  // Blue
+    '#00C853',  // Green
+    '#FF4081',  // Pink
+    '#FFC107',  // Amber
+    '#7C4DFF',  // Deep Purple
+    '#00BCD4',  // Cyan
+  ]
+};
+
+// Dummy data structure
+const DUMMY_DATA = {
+  categories: [
+    { 
+      name: "Mutual Funds", 
+      value: 60, 
+      amount: 600000, 
+      color: COLORS.chartColors[0],
+      subCategories: [
+        { name: "Large Cap", value: 40, amount: 240000 },
+        { name: "Mid Cap", value: 35, amount: 210000 },
+        { name: "Small Cap", value: 25, amount: 150000 }
+      ]
+    },
+    { 
+      name: "Stocks", 
+      value: 40, 
+      amount: 400000, 
+      color: COLORS.chartColors[1],
+      subCategories: [
+        { name: "IT Sector", value: 45, amount: 180000 },
+        { name: "Banking", value: 35, amount: 140000 },
+        { name: "FMCG", value: 20, amount: 80000 }
+      ]
+    }
+  ],
+  totalAmount: 1000000
+};
+
+// Indian currency formatter function
+const formatIndianCurrency = (amount) => {
+  if (!amount) return '';
+  
+  // Remove any existing commas and non-numeric characters
+  const number = amount.toString().replace(/[^0-9.]/g, '');
+  
+  // Split the number into whole and decimal parts
+  const parts = number.split('.');
+  let wholePart = parts[0];
+  const decimalPart = parts[1] || '';
+
+  // Format according to Indian number system
+  // First, get the last 3 digits
+  const lastThree = wholePart.slice(-3);
+  // Get the remaining digits
+  const otherNumbers = wholePart.slice(0, -3);
+  // Insert commas every 2 digits in the remaining part
+  const formatted = otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ',');
+  
+  // Combine the parts
+  wholePart = otherNumbers ? formatted + ',' + lastThree : lastThree;
+  
+  // Return the formatted number with decimal part if exists
+  return decimalPart ? `${wholePart}.${decimalPart}` : wholePart;
+};
+
 const App = () => {
-  // State for the total investment amount
   const [totalAmount, setTotalAmount] = useState("");
-  // State for the main investment categories and their sub-categories
   const [categories, setCategories] = useState([
     {
       id: "mutualFunds",
       name: "Mutual Funds",
       percentage: "",
       subCategories: [],
+      isFixed: true
     },
     {
       id: "stocks",
       name: "Stocks",
       percentage: "",
       subCategories: [],
-    },
-    {
-      id: "etf",
-      name: "ETF",
-      percentage: "",
-      subCategories: [],
-    },
-    {
-      id: "gold",
-      name: "GOLD",
-      percentage: "",
-      subCategories: [],
-    },
-    {
-      id: "rd",
-      name: "RD",
-      percentage: "",
-      subCategories: [],
-    },
+      isFixed: true
+    }
   ]);
 
-  // State for displaying validation messages
+  const [profiles, setProfiles] = useState([]);
+  const [currentProfile, setCurrentProfile] = useState("");
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [newProfileName, setNewProfileName] = useState("");
   const [validationMessage, setValidationMessage] = useState("");
-  // State to store the calculated results, updated only when valid
   const [displayResults, setDisplayResults] = useState(null);
-  // Ref to scroll to the results section
-  const resultsRef = useRef(null);
 
-  // Effect to scroll to results when displayResults are available
-  useEffect(() => {
-    if (displayResults && resultsRef.current) {
-      resultsRef.current.scrollIntoView({ behavior: "smooth" });
+  // Define loadProfile using useCallback
+  const loadProfile = useCallback((profileName) => {
+    const profile = profiles.find(p => p.name === profileName);
+    if (profile) {
+      setTotalAmount(profile.totalAmount);
+      setCategories(profile.categories);
+      setCurrentProfile(profileName);
+      localStorage.setItem('lastUsedProfile', profileName);
     }
-  }, [displayResults]);
+  }, [profiles]);
 
-  // Handle changes in the total investment amount
-  const handleTotalAmountChange = (e) => {
-    const value = e.target.value;
-    // Allow only numbers and a single decimal point
-    if (/^\d*\.?\d*$/.test(value) || value === "") {
-      setTotalAmount(value);
+  // Delete a profile
+  const deleteProfile = (profileName) => {
+    const updatedProfiles = profiles.filter(p => p.name !== profileName);
+    setProfiles(updatedProfiles);
+    if (currentProfile === profileName) {
+      setCurrentProfile("");
+    }
+    localStorage.setItem('investmentProfiles', JSON.stringify(updatedProfiles));
+    if (localStorage.getItem('lastUsedProfile') === profileName) {
+      localStorage.removeItem('lastUsedProfile');
     }
   };
 
-  // Handle changes in main category percentage
-  const handleCategoryPercentageChange = (id, value) => {
-    // Allow only numbers and ensure value is between 0 and 100
-    if (/^\d*\.?\d*$/.test(value) || value === "") {
-      const newCategories = categories.map((cat) =>
-        cat.id === id ? { ...cat, percentage: value } : cat
-      );
-      setCategories(newCategories);
+  // Load profiles effect with cleanup
+  useEffect(() => {
+    let mounted = true;
+
+    const loadSavedProfiles = () => {
+      const savedProfiles = localStorage.getItem('investmentProfiles');
+      if (savedProfiles && mounted) {
+        const parsedProfiles = JSON.parse(savedProfiles);
+        setProfiles(parsedProfiles);
+        
+        const lastUsedProfile = localStorage.getItem('lastUsedProfile');
+        if (lastUsedProfile && mounted) {
+          loadProfile(lastUsedProfile);
+        }
+      }
+    };
+
+    loadSavedProfiles();
+    return () => {
+      mounted = false;
+    };
+  }, [loadProfile]);
+
+  // Save profile function
+  const saveProfile = (profileName) => {
+    const profile = {
+      name: profileName,
+      totalAmount,
+      categories,
+    };
+
+    const updatedProfiles = [...profiles.filter(p => p.name !== profileName), profile];
+    setProfiles(updatedProfiles);
+    setCurrentProfile(profileName);
+    localStorage.setItem('investmentProfiles', JSON.stringify(updatedProfiles));
+    localStorage.setItem('lastUsedProfile', profileName);
+    setShowSaveDialog(false);
+    setNewProfileName("");
+  };
+
+  // Format data for charts
+  const getPieChartData = (categories) => {
+    const hasData = categories.some(cat => parseFloat(cat.percentage) > 0);
+    const hasTotalAmount = parseFloat(totalAmount) > 0;
+    
+    if (!hasData || !hasTotalAmount) {
+      return DUMMY_DATA.categories.map(cat => ({
+        ...cat,
+        isDummy: true // Add this flag to identify dummy data
+      }));
     }
+    return categories.map((cat, index) => ({
+      name: cat.name,
+      value: parseFloat(cat.percentage) || 0,
+      amount: parseFloat(totalAmount) * (parseFloat(cat.percentage) || 0) / 100,
+      color: COLORS.chartColors[index % COLORS.chartColors.length],
+      isDummy: false
+    }));
+  };
+
+  // Get sub-category chart data
+  const getSubCategoryChartData = (category) => {
+    if (!category || !category.subCategories || !category.subCategories.length) {
+      const dummyCategory = DUMMY_DATA.categories.find(c => c.name === category.name);
+      if (dummyCategory) {
+        return dummyCategory.subCategories.map(sub => ({
+          ...sub,
+          isDummy: true
+        }));
+      }
+      return [];
+    }
+    
+    const categoryAmount = parseFloat(totalAmount) * (parseFloat(category.percentage) || 0) / 100;
+    return category.subCategories
+      .map(sub => {
+        const value = parseFloat(sub.percentage) || 0;
+        const amount = categoryAmount * (value / 100);
+        return {
+          name: sub.name || 'Unnamed',
+          value: value,
+          amount: amount,
+          isDummy: false
+        };
+      })
+      .filter(item => item.value > 0);
+  };
+
+  // Handle changes in total amount
+  const handleTotalAmountChange = (e) => {
+    const value = e.target.value;
+    // Remove any non-numeric characters except decimal point
+    const numericValue = value.replace(/[^0-9.]/g, '');
+    setTotalAmount(numericValue);
+  };
+
+  // Handle changes in category percentage
+  const handleCategoryPercentageChange = (id, value) => {
+    setCategories(prev => prev.map((cat) =>
+      cat.id === id ? { ...cat, percentage: value } : cat
+    ));
   };
 
   // Handle changes in sub-category name
   const handleSubCategoryNameChange = (catId, subId, value) => {
-    const newCategories = categories.map((cat) =>
+    setCategories(prev => prev.map((cat) =>
       cat.id === catId
         ? {
             ...cat,
@@ -84,246 +240,260 @@ const App = () => {
             ),
           }
         : cat
-    );
-    setCategories(newCategories);
+    ));
   };
 
   // Handle changes in sub-category percentage
   const handleSubCategoryPercentageChange = (catId, subId, value) => {
-    // Allow only numbers and ensure value is between 0 and 100
-    if (/^\d*\.?\d*$/.test(value) || value === "") {
-      const newCategories = categories.map((cat) =>
-        cat.id === catId
-          ? {
-              ...cat,
-              subCategories: cat.subCategories.map((sub) =>
-                sub.id === subId ? { ...sub, percentage: value } : sub
-              ),
-            }
-          : cat
-      );
-      setCategories(newCategories);
-    }
+    setCategories(prev => prev.map((cat) =>
+      cat.id === catId
+        ? {
+            ...cat,
+            subCategories: cat.subCategories.map((sub) =>
+              sub.id === subId ? { ...sub, percentage: value } : sub
+            ),
+          }
+        : cat
+    ));
   };
 
-  // Add a new sub-category to a main category
+  // Add a new sub-category
   const addSubCategory = (catId) => {
-    const newCategories = categories.map((cat) =>
+    setCategories(prev => prev.map((cat) =>
       cat.id === catId
         ? {
             ...cat,
             subCategories: [
               ...cat.subCategories,
-              { id: Date.now(), name: "", percentage: "" }, // Unique ID for each sub-category
+              { id: Date.now().toString(), name: "", percentage: "0" },
             ],
           }
         : cat
-    );
-    setCategories(newCategories);
+    ));
   };
 
-  // Remove a sub-category from a main category
+  // Remove a sub-category
   const removeSubCategory = (catId, subId) => {
-    const newCategories = categories.map((cat) =>
+    setCategories(prev => prev.map((cat) =>
       cat.id === catId
         ? {
             ...cat,
             subCategories: cat.subCategories.filter((sub) => sub.id !== subId),
           }
         : cat
-    );
-    setCategories(newCategories);
+    ));
   };
 
-  // Function to perform validation and calculate allocation
-  const performAllocationCalculation = () => {
-    let currentValidationMessage = ""; // Use a local variable for validation state
+  // Update calculation effect with cleanup
+  useEffect(() => {
+    let mounted = true;
 
-    const amount = parseFloat(totalAmount);
-    if (isNaN(amount) || amount <= 0) {
-      currentValidationMessage =
-        "Please enter a valid total investment amount.";
-    }
+    const calculateAllocation = () => {
+      if (!mounted) return;
 
-    // Validate main category percentages
-    const totalMainPercentage = categories.reduce(
-      (sum, cat) => sum + (parseFloat(cat.percentage) || 0),
-      0
-    );
-
-    // Check if main category percentages sum to 100% (allowing for float inaccuracies)
-    if (
-      !currentValidationMessage &&
-      (totalMainPercentage > 100.0001 || totalMainPercentage < 99.9999)
-    ) {
-      currentValidationMessage = "Main category percentages must sum to 100%.";
-    }
-
-    const calculatedCategories = categories.map((cat) => {
-      const mainAllocatedAmount =
-        (amount * (parseFloat(cat.percentage) || 0)) / 100;
-
-      let subCategoryAllocations = [];
-      if (cat.subCategories.length > 0) {
-        const totalSubPercentage = cat.subCategories.reduce(
-          (sum, sub) => sum + (parseFloat(sub.percentage) || 0),
-          0
-        );
-        // Check if sub-category percentages sum to 100% (allowing for float inaccuracies)
-        if (
-          !currentValidationMessage &&
-          (totalSubPercentage > 100.0001 || totalSubPercentage < 99.9999)
-        ) {
-          currentValidationMessage = `Sub-category percentages for "${cat.name}" must sum to 100%.`;
-        }
-
-        subCategoryAllocations = cat.subCategories.map((sub) => {
-          const subAllocatedAmount =
-            (mainAllocatedAmount * (parseFloat(sub.percentage) || 0)) / 100;
-          return {
-            name: sub.name || "Unnamed Sub-category",
-            percentage: parseFloat(sub.percentage) || 0,
-            allocatedAmount: subAllocatedAmount,
-            id: sub.id, // Ensure sub-category ID is passed for consistent keying in results
-          };
-        });
+      let currentValidationMessage = "";
+      const amount = parseFloat(totalAmount);
+      
+      if (isNaN(amount) || amount <= 0) {
+        currentValidationMessage = "Please enter a valid total investment amount.";
+        setValidationMessage(currentValidationMessage);
+        setDisplayResults(null);
+        return;
       }
 
-      return {
-        name: cat.name,
-        percentage: parseFloat(cat.percentage) || 0,
-        allocatedAmount: mainAllocatedAmount,
-        subCategoryAllocations: subCategoryAllocations,
-      };
-    });
+      const totalMainPercentage = categories.reduce(
+        (sum, cat) => sum + (parseFloat(cat.percentage) || 0),
+        0
+      );
 
-    // Update state based on validation
-    setValidationMessage(currentValidationMessage);
-    if (currentValidationMessage) {
-      setDisplayResults(null); // Clear results if there's a validation error
-    } else {
-      setDisplayResults(calculatedCategories); // Set results if no errors
-    }
+      if (totalMainPercentage > 100.0001 || totalMainPercentage < 99.9999) {
+        currentValidationMessage = "Main category percentages must sum to 100%.";
+      }
+
+      categories.forEach((cat) => {
+        const mainCategoryPercentage = parseFloat(cat.percentage) || 0;
+        if (mainCategoryPercentage > 0 && cat.subCategories.length > 0) {
+          const totalSubPercentage = cat.subCategories.reduce(
+            (sum, sub) => sum + (parseFloat(sub.percentage) || 0),
+            0
+          );
+          if (totalSubPercentage > 100.0001 || totalSubPercentage < 99.9999) {
+            currentValidationMessage = `Sub-categories under ${cat.name} must sum to 100%.`;
+          }
+        }
+      });
+
+      if (mounted) {
+        setValidationMessage(currentValidationMessage);
+        setDisplayResults(currentValidationMessage ? null : categories);
+      }
+    };
+
+    calculateAllocation();
+    return () => {
+      mounted = false;
+    };
+  }, [totalAmount, categories]);
+
+  // Clear all data function
+  const clearAllData = () => {
+    // Clear local storage
+    localStorage.removeItem('investmentProfiles');
+    localStorage.removeItem('lastUsedProfile');
+
+    // Reset all state
+    setProfiles([]);
+    setCurrentProfile("");
+    setTotalAmount("");
+    setCategories([
+      {
+        id: "mutualFunds",
+        name: "Mutual Funds",
+        percentage: "",
+        subCategories: [],
+        isFixed: true
+      },
+      {
+        id: "stocks",
+        name: "Stocks",
+        percentage: "",
+        subCategories: [],
+        isFixed: true
+      }
+    ]);
+    setShowSaveDialog(false);
+    setNewProfileName("");
+    setValidationMessage("");
+    setDisplayResults(null);
+
+    // Force page reload to ensure clean state
+    window.location.reload();
   };
 
-  // Call performAllocationCalculation whenever relevant inputs change
-  // This ensures the calculations and validations run automatically as the user types
-  useEffect(() => {
-    performAllocationCalculation();
-  }, [totalAmount, categories]); // Recalculate when totalAmount or categories state changes
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 p-4 sm:p-8 font-inter text-gray-800">
-      <style>
-        {`
-          @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-          body {
-            font-family: 'Inter', sans-serif;
-          }
-          .input-field {
-            @apply w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-400 focus:border-transparent transition duration-200 ease-in-out;
-          }
-          .button-primary {
-            @apply bg-blue-600 text-white px-5 py-2 rounded-lg shadow-md hover:bg-blue-700 transition duration-200 ease-in-out flex items-center justify-center space-x-2;
-          }
-          .button-secondary {
-            @apply bg-gray-200 text-gray-700 px-4 py-2 rounded-lg shadow-sm hover:bg-gray-300 transition duration-200 ease-in-out flex items-center justify-center space-x-2;
-          }
-          .card {
-            @apply bg-white p-6 rounded-xl shadow-lg border border-gray-200;
-          }
-          .fade-in {
-            animation: fadeIn 0.5s ease-out;
-          }
-          @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-          }
-        `}
-      </style>
-
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-4xl sm:text-5xl font-bold text-center text-blue-800 mb-8 sm:mb-12">
-          Investment Diversification
-        </h1>
-
-        {/* Total Investment Amount Input */}
-        <div className="card mb-8 fade-in">
-          <label
-            htmlFor="totalAmount"
-            className="block text-lg font-semibold mb-3 text-gray-700"
-          >
-            Total Investment Amount ($)
-          </label>
-          <div className="relative">
-            <DollarSign
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-              size={20}
-            />
-            <input
-              id="totalAmount"
-              type="text" // Use text to allow for decimal input
-              value={totalAmount}
-              onChange={handleTotalAmountChange}
-              placeholder="e.g., 100000"
-              className="input-field pl-10"
-            />
+    <div className="min-h-screen bg-[#121212] text-white relative overflow-hidden">
+      <div className="layout-container flex flex-col lg:flex-row gap-4 p-4">
+        {/* Left Panel - Made responsive */}
+        <div className="panel w-full lg:w-[40%] bg-[#1E1E1E] rounded-lg p-4">
+          <div className="panel-header mb-6">
+            <h1 className="title text-xl sm:text-2xl font-bold text-purple-400">Investment Diversification</h1>
           </div>
-        </div>
-
-        {/* Main Categories and Sub-categories */}
-        <div className="space-y-6 mb-10">
-          {categories.map((category) => (
-            <div key={category.id} className="card fade-in">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold text-gray-800">
-                  {category.name}
-                </h2>
-                <div className="relative w-28">
-                  <input
-                    type="text" // Use text to allow for decimal input
-                    value={category.percentage}
-                    onChange={(e) =>
-                      handleCategoryPercentageChange(
-                        category.id,
-                        e.target.value
-                      )
-                    }
-                    placeholder="%"
-                    className="input-field pr-8 text-right"
-                    maxLength="5" // e.g., 100.0
-                  />
-                  <Percent
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
-                    size={18}
-                  />
+          
+          <div className="panel-content space-y-4">
+            {/* Profile Management Section */}
+            <div className="card bg-[#2D2D2D] rounded-lg p-4">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-3">
+                <h3 className="text-lg font-medium text-white">Saved Allocations</h3>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    className="button-primary bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-md flex items-center gap-2 transition-colors text-sm sm:text-base"
+                    onClick={() => setShowSaveDialog(true)}
+                  >
+                    <Save className="w-4 h-4" />
+                    Save Current
+                  </button>
+                  <button
+                    className="button-danger bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-md flex items-center gap-2 transition-colors text-sm sm:text-base"
+                    onClick={() => {
+                      if (window.confirm('Are you sure you want to clear all saved data? This action cannot be undone.')) {
+                        clearAllData();
+                      }
+                    }}
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                    Clear All Data
+                  </button>
                 </div>
               </div>
+              <div className="flex flex-wrap gap-2">
+                {profiles.map((profile) => (
+                  <button
+                    key={profile.name}
+                    onClick={() => loadProfile(profile.name)}
+                    className={`profile-chip flex items-center gap-2 px-3 py-2 rounded-md text-sm sm:text-base ${
+                      currentProfile === profile.name 
+                        ? 'bg-purple-600 text-white' 
+                        : 'bg-[#363636] text-gray-300 hover:bg-[#404040]'
+                    }`}
+                  >
+                    <FolderOpen className="w-4 h-4" />
+                    {profile.name}
+                    <Trash2
+                      className="w-4 h-4 text-red-400 hover:text-red-300"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteProfile(profile.name);
+                      }}
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
 
-              {/* Sub-categories */}
-              <div className="space-y-4 border-t border-gray-200 pt-4 mt-4">
+            {/* Categories Section - Made responsive */}
+            {categories.map((category, index) => (
+              <div key={category.id} className="card bg-[#2D2D2D] rounded-lg p-4">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-3">
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-3 h-3 rounded-full"
+                      style={{
+                        backgroundColor: COLORS.chartColors[index % COLORS.chartColors.length]
+                      }}
+                    />
+                    <h3 className="text-lg font-medium text-white">{category.name}</h3>
+                  </div>
+                  <div className="flex items-center w-full sm:w-auto">
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.1"
+                      value={category.percentage || "0"}
+                      onChange={(e) =>
+                        handleCategoryPercentageChange(category.id, e.target.value)
+                      }
+                      className="input-field percentage-input w-full sm:w-20 bg-[#363636] text-white border border-gray-600 rounded-md px-3 py-2 focus:outline-none focus:border-purple-500"
+                    />
+                    <span className="ml-2 text-gray-300">%</span>
+                  </div>
+                </div>
+
+                {/* Sub-categories - Made responsive */}
                 {category.subCategories.map((sub) => (
                   <div
                     key={sub.id}
-                    className="flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-4 bg-gray-50 p-4 rounded-lg border border-gray-100 shadow-sm"
+                    className="ml-3 sm:ml-6 mb-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2"
                   >
-                    <input
-                      type="text"
-                      value={sub.name}
-                      onChange={(e) =>
-                        handleSubCategoryNameChange(
-                          category.id,
-                          sub.id,
-                          e.target.value
-                        )
-                      }
-                      placeholder="Sub-category Name"
-                      className="input-field flex-grow"
-                    />
-                    <div className="relative w-full sm:w-28">
+                    <div className="flex items-center gap-2 w-full sm:w-auto sm:flex-1">
+                      <div
+                        className="w-2 h-2 rounded-full"
+                        style={{
+                          backgroundColor: COLORS.chartColors[index % COLORS.chartColors.length],
+                          opacity: 0.6
+                        }}
+                      />
                       <input
-                        type="text" // Use text to allow for decimal input
-                        value={sub.percentage}
+                        type="text"
+                        value={sub.name}
+                        onChange={(e) =>
+                          handleSubCategoryNameChange(
+                            category.id,
+                            sub.id,
+                            e.target.value
+                          )
+                        }
+                        placeholder="Enter name"
+                        className="input-field w-full bg-[#363636] text-white border border-gray-600 rounded-md px-3 py-2 focus:outline-none focus:border-purple-500"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.1"
+                        value={sub.percentage || "0"}
                         onChange={(e) =>
                           handleSubCategoryPercentageChange(
                             category.id,
@@ -331,93 +501,329 @@ const App = () => {
                             e.target.value
                           )
                         }
-                        placeholder="%"
-                        className="input-field pr-8 text-right"
-                        maxLength="5"
+                        className="input-field percentage-input w-full sm:w-20 bg-[#363636] text-white border border-gray-600 rounded-md px-3 py-2 focus:outline-none focus:border-purple-500"
                       />
-                      <Percent
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
-                        size={18}
-                      />
+                      <span className="text-gray-300">%</span>
+                      <button
+                        onClick={() => removeSubCategory(category.id, sub.id)}
+                        className="text-red-400 hover:text-red-300"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
                     </div>
-                    <button
-                      onClick={() => removeSubCategory(category.id, sub.id)}
-                      className="p-2 bg-red-100 text-red-600 rounded-full hover:bg-red-200 transition duration-200 ease-in-out"
-                      aria-label="Remove sub-category"
-                    >
-                      <X size={20} />
-                    </button>
                   </div>
                 ))}
-                <button
-                  onClick={() => addSubCategory(category.id)}
-                  className="button-secondary w-full mt-4"
-                >
-                  <Plus size={18} /> Add Sub-category
-                </button>
+
+                {/* Add Sub-category Button */}
+                <div className="ml-3 sm:ml-6">
+                  <button
+                    onClick={() => addSubCategory(category.id)}
+                    className="button-primary bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-md flex items-center gap-2 transition-colors group text-sm sm:text-base"
+                  >
+                    <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform duration-300" />
+                    <span>Add {category.name}</span>
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
-        {/* Validation Message */}
-        {validationMessage && (
-          <div
-            className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative mb-6 animate-pulse"
-            role="alert"
-          >
-            <strong className="font-bold">Error:</strong>
-            <span className="block sm:inline ml-2">{validationMessage}</span>
+        {/* Right Panel - Made responsive */}
+        <div className="panel w-full lg:w-[60%] bg-[#1E1E1E] rounded-lg p-4">
+          <div className="panel-header mb-6">
+            <h2 className="text-lg sm:text-xl font-bold text-purple-400">Portfolio Visualization</h2>
+            {(!totalAmount || !displayResults?.some(cat => parseFloat(cat.percentage) > 0)) && (
+              <p className="text-gray-400 text-sm mt-2">
+                This is a sample visualization. Enter your investment details to see your actual portfolio distribution.
+              </p>
+            )}
           </div>
-        )}
+          
+          <div className="panel-content space-y-6">
+            {/* Main Categories Chart */}
+            <div className="card bg-[#2D2D2D] rounded-lg p-4 sm:p-6">
+              <h3 className="text-base sm:text-lg font-medium mb-4 sm:mb-6 text-white">
+                Portfolio Distribution
+                {(!totalAmount || !displayResults?.some(cat => parseFloat(cat.percentage) > 0)) && (
+                  <span className="text-sm font-normal text-gray-400 ml-2">(Sample Data)</span>
+                )}
+              </h3>
+              <div className="chart-container h-[300px] sm:h-[400px] md:h-[500px] relative">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={displayResults?.some(cat => parseFloat(cat.percentage) > 0) 
+                        ? getPieChartData(displayResults)
+                        : DUMMY_DATA.categories}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={100}
+                      outerRadius={160}
+                      paddingAngle={8}
+                      dataKey="amount"
+                      labelLine={{
+                        stroke: '#666',
+                        strokeWidth: 1,
+                        strokeDasharray: '2 2'
+                      }}
+                      label={({
+                        cx,
+                        cy,
+                        midAngle,
+                        outerRadius,
+                        value,
+                        index,
+                        payload,
+                        percent
+                      }) => {
+                        const RADIAN = Math.PI / 180;
+                        const radius = outerRadius * 1.4;
+                        const x = cx + radius * Math.cos(-midAngle * RADIAN);
+                        const y = cy + radius * Math.sin(-midAngle * RADIAN);
+                        const name = payload.name;
+                        const formattedValue = formatIndianCurrency(value);
+                        const formattedPercent = (percent * 100).toFixed(1);
+                        const textAnchor = x > cx ? 'start' : 'end';
+                        const isLeftSide = x <= cx;
 
-        {/* Allocation Results */}
-        {displayResults && !validationMessage && (
-          <div ref={resultsRef} className="card fade-in">
-            <h2 className="text-2xl font-bold text-blue-700 mb-6 flex items-center space-x-2">
-              <BarChart2 size={24} /> <span>Allocation Results</span>
-            </h2>
-            <div className="space-y-5">
-              {displayResults.map((cat) => (
-                <div
-                  key={cat.name}
-                  className="bg-blue-50 p-4 rounded-lg border border-blue-200 shadow-sm"
-                >
-                  <div className="flex justify-between items-center mb-2">
-                    <h3 className="text-lg font-semibold text-blue-800">
-                      {cat.name}
-                    </h3>
-                    <span className="text-blue-700 font-bold text-xl">
-                      ${cat.allocatedAmount.toFixed(2)}
-                    </span>
-                  </div>
-                  <p className="text-sm text-blue-600 mb-3">
-                    {cat.percentage}% of total
-                  </p>
+                        const boxX = isLeftSide ? x - 120 : x;
+                        const nameY = y - 20;
+                        const amountY = y;
+                        const percentY = y + 20;
 
-                  {cat.subCategoryAllocations.length > 0 && (
-                    <div className="ml-4 border-l-2 border-blue-300 pl-4 space-y-3">
-                      {cat.subCategoryAllocations.map((sub) => (
-                        <div
-                          key={sub.id}
-                          className="flex justify-between items-center text-gray-700 text-base"
-                        >
-                          <span>
-                            {sub.name} ({sub.percentage}%)
-                          </span>
-                          <span className="font-medium">
-                            ${sub.allocatedAmount.toFixed(2)}
-                          </span>
-                        </div>
+                        return (
+                          <g>
+                            <path
+                              d={`M${x > cx ? x - 10 : x + 10},${y}L${x > cx ? x - 30 : x + 30},${y}`}
+                              stroke={COLORS.chartColors[index % COLORS.chartColors.length]}
+                              fill="none"
+                            />
+                            <rect
+                              x={boxX - (isLeftSide ? 0 : 10)}
+                              y={nameY - 10}
+                              width={120}
+                              height={60}
+                              fill="#1E1E1E"
+                              fillOpacity={0.8}
+                              rx={4}
+                            />
+                            <text
+                              x={boxX + (isLeftSide ? 10 : 0)}
+                              y={nameY}
+                              fill={COLORS.chartColors[index % COLORS.chartColors.length]}
+                              textAnchor={textAnchor}
+                              dominantBaseline="central"
+                              className="text-sm font-medium"
+                            >
+                              {name}
+                            </text>
+                            <text
+                              x={boxX + (isLeftSide ? 10 : 0)}
+                              y={amountY}
+                              fill={COLORS.chartColors[index % COLORS.chartColors.length]}
+                              textAnchor={textAnchor}
+                              dominantBaseline="central"
+                              className="text-xs"
+                            >
+                              ₹{formattedValue}
+                            </text>
+                            <text
+                              x={boxX + (isLeftSide ? 10 : 0)}
+                              y={percentY}
+                              fill={COLORS.chartColors[index % COLORS.chartColors.length]}
+                              textAnchor={textAnchor}
+                              dominantBaseline="central"
+                              className="text-xs"
+                            >
+                              {formattedPercent}%
+                            </text>
+                          </g>
+                        );
+                      }}
+                    >
+                      {(displayResults?.some(cat => parseFloat(cat.percentage) > 0) 
+                        ? getPieChartData(displayResults)
+                        : DUMMY_DATA.categories
+                      ).map((entry, index) => (
+                        <Cell 
+                          key={`cell-${index}`} 
+                          fill={COLORS.chartColors[index % COLORS.chartColors.length]}
+                          stroke="#1E1E1E"
+                          strokeWidth={2}
+                        />
                       ))}
-                    </div>
-                  )}
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
+                
+                {/* Center Text */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="text-center bg-[#1E1E1E80] p-4 rounded-full backdrop-blur-sm">
+                    <p className="text-gray-300 text-sm">Total Investment</p>
+                    <p className="text-2xl font-bold text-white">
+                      ₹{(!totalAmount || !displayResults?.some(cat => parseFloat(cat.percentage) > 0))
+                        ? formatIndianCurrency(DUMMY_DATA.totalAmount)
+                        : formatIndianCurrency(totalAmount)}
+                    </p>
+                  </div>
                 </div>
-              ))}
+              </div>
+
+              {/* Amount Summary - Made responsive */}
+              <div className="mt-4 sm:mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {(displayResults?.some(cat => parseFloat(cat.percentage) > 0)
+                  ? getPieChartData(displayResults)
+                  : DUMMY_DATA.categories
+                ).map((category, index) => (
+                  <div 
+                    key={index} 
+                    className="bg-[#363636] rounded-lg p-4 transition-all hover:bg-[#404040]"
+                  >
+                    <div className="flex items-center gap-2">
+                      <div 
+                        className="w-3 h-3 rounded-full"
+                        style={{ backgroundColor: COLORS.chartColors[index % COLORS.chartColors.length] }}
+                      />
+                      <h4 className="text-white font-medium">{category.name}</h4>
+                    </div>
+                    <p className="text-xl sm:text-2xl font-bold text-purple-400 mt-2">
+                      ₹{formatIndianCurrency(category.amount)}
+                    </p>
+                    <p className="text-sm text-gray-400">{category.value}% of portfolio</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Sub-categories Visualization - Made responsive */}
+            {(displayResults?.some(cat => parseFloat(cat.percentage) > 0)
+              ? displayResults
+              : DUMMY_DATA.categories
+            ).map((category, index) => (
+              category.subCategories?.length > 0 && (
+                <div key={category.name} className="card bg-[#2D2D2D] rounded-lg p-4 sm:p-6">
+                  <h3 className="text-base sm:text-lg font-medium mb-4 sm:mb-6 text-white">
+                    {category.name} Breakdown
+                    {(!totalAmount || !displayResults?.some(cat => parseFloat(cat.percentage) > 0)) && (
+                      <span className="text-sm font-normal text-gray-400 ml-2">(Sample Data)</span>
+                    )}
+                  </h3>
+                  <div className="sub-category-visualization">
+                    <div className="category-visualization flex flex-col">
+                      <div className="chart-container overflow-x-auto sm:overflow-x-visible overflow-y-auto max-h-[400px] sm:max-h-[600px] pr-2 sm:pr-4" style={{ scrollbarWidth: 'thin' }}>
+                        <div style={{ height: Math.max(300, category.subCategories.length * 60) }}>
+                          <ResponsiveContainer width="100%" height="100%">
+                            <ComposedChart
+                              layout="vertical"
+                              data={getSubCategoryChartData(category)}
+                              margin={{ top: 10, right: 200, left: 160, bottom: 10 }}
+                            >
+                              <XAxis 
+                                type="number"
+                                domain={[0, 100]}
+                                tickFormatter={(value) => `${value}%`}
+                                tick={{ fill: '#fff', fontSize: 12 }}
+                              />
+                              <YAxis
+                                type="category"
+                                dataKey="name"
+                                width={150}
+                                tick={{ 
+                                  fill: '#fff', 
+                                  fontSize: 12,
+                                  width: 140,
+                                  wordWrap: 'break-word'
+                                }}
+                                interval={0}
+                              />
+                              <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#444" />
+                              <Bar
+                                dataKey="value"
+                                fill={COLORS.chartColors[index]}
+                                radius={[0, 4, 4, 0]}
+                                barSize={30}
+                              >
+                                <LabelList
+                                  dataKey={(entry) => {
+                                    const percent = entry.value.toFixed(1);
+                                    const amount = formatIndianCurrency(entry.amount);
+                                    return `${percent}% (₹${amount})`;
+                                  }}
+                                  position="right"
+                                  fill="#fff"
+                                  fontSize={12}
+                                  offset={10}
+                                />
+                              </Bar>
+                            </ComposedChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </div>
+                      
+                      {/* Summary Grid - Made responsive */}
+                      <div className="mt-4 sm:mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                        {getSubCategoryChartData(category)
+                          .sort((a, b) => b.value - a.value)
+                          .map((subCat, subIndex) => (
+                            <div key={subIndex} className="bg-[#363636] rounded-lg p-4 transition-all hover:bg-[#404040]">
+                              <div className="flex items-center gap-2">
+                                <div 
+                                  className="w-2 h-2 rounded-full"
+                                  style={{ 
+                                    backgroundColor: COLORS.chartColors[index],
+                                    opacity: 0.6 + (0.4 * (1 - subIndex / category.subCategories.length))
+                                  }}
+                                />
+                                <h4 className="text-white font-medium break-words">{subCat.name}</h4>
+                              </div>
+                              <p className="text-lg sm:text-xl font-bold text-purple-400 mt-2">
+                                ₹{formatIndianCurrency(subCat.amount)}
+                              </p>
+                              <p className="text-sm text-gray-400">{subCat.value.toFixed(1)}% of {category.name}</p>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Save Profile Dialog - Made responsive */}
+      {showSaveDialog && (
+        <>
+          <div className="dialog-overlay fixed inset-0 bg-black/50 backdrop-blur-sm z-40" onClick={() => setShowSaveDialog(false)} />
+          <div className="save-dialog fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-[#2D2D2D] rounded-lg p-4 sm:p-6 w-[90%] sm:w-96 z-50">
+            <h3 className="text-lg font-medium mb-4 text-white">Save Allocation Profile</h3>
+            <input
+              type="text"
+              className="input-field w-full mb-4 bg-[#363636] text-white border border-gray-600 rounded-md px-3 py-2 focus:outline-none focus:border-purple-500"
+              placeholder="Enter profile name"
+              value={newProfileName}
+              onChange={(e) => setNewProfileName(e.target.value)}
+            />
+            <div className="flex justify-end gap-3">
+              <button
+                className="px-4 py-2 rounded-md bg-gray-600 text-white hover:bg-gray-700 transition-colors text-sm sm:text-base"
+                onClick={() => setShowSaveDialog(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 rounded-md bg-purple-600 text-white hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
+                onClick={() => saveProfile(newProfileName)}
+                disabled={!newProfileName.trim()}
+              >
+                Save
+              </button>
             </div>
           </div>
-        )}
-      </div>
+        </>
+      )}
     </div>
   );
 };
