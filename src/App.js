@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Plus, X, DollarSign, Save, FolderOpen, Trash2, RefreshCw } from "lucide-react";
-import { PieChart, Pie, Cell, Sector, ComposedChart, Bar, XAxis, YAxis, CartesianGrid, Treemap, LabelList, ResponsiveContainer, Tooltip } from 'recharts';
+import { Plus, X, Save, FolderOpen, Trash2, RefreshCw } from "lucide-react";
+import { PieChart, Pie, Cell, ComposedChart, Bar, XAxis, YAxis, CartesianGrid, LabelList, ResponsiveContainer } from 'recharts';
 
 // Custom color palette
 const COLORS = {
@@ -430,6 +430,32 @@ const App = () => {
               </div>
             </div>
 
+            {/* Total Investment Amount Input */}
+            <div className="card bg-[#2D2D2D] rounded-lg p-4">
+              <h3 className="text-lg font-medium mb-3 text-white">Total Investment Amount</h3>
+              <div className="relative flex items-center">
+                <span className="absolute left-3 text-purple-400 font-medium">₹</span>
+                <input
+                  type="text"
+                  value={formatIndianCurrency(totalAmount)}
+                  onChange={handleTotalAmountChange}
+                  placeholder="Enter amount"
+                  className="input-field w-full bg-[#363636] text-white border border-gray-600 rounded-md px-8 py-2 focus:outline-none focus:border-purple-500"
+                />
+              </div>
+              <p className="text-xs text-gray-400 mt-2">Enter amount in Indian Rupees (₹)</p>
+              
+              {/* Validation Message */}
+              {validationMessage && (
+                <div className="validation-message bg-red-900/50 text-red-200 p-4 rounded-lg mt-4">
+                  <div className="flex items-center gap-2">
+                    <span role="img" aria-label="warning">⚠️</span>
+                    {validationMessage}
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Categories Section - Made responsive */}
             {categories.map((category, index) => (
               <div key={category.id} className="card bg-[#2D2D2D] rounded-lg p-4">
@@ -526,6 +552,90 @@ const App = () => {
                 </div>
               </div>
             ))}
+
+            {/* Developer Info and Promotion Section - Amex Gold Card Style */}
+            <div className="mt-8 card rounded-lg p-6 relative overflow-hidden" 
+                 style={{
+                   background: 'linear-gradient(135deg, #DFB658 0%, #C19A49 50%, #DFB658 100%)',
+                   boxShadow: '0 10px 20px rgba(0,0,0,0.2)'
+                 }}>
+              {/* Metallic pattern overlay */}
+              <div className="absolute inset-0" 
+                   style={{ 
+                     backgroundImage: 'linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.1) 45%, rgba(255,255,255,0.1) 55%, rgba(255,255,255,0) 100%)',
+                     backgroundSize: '200% 100%',
+                     animation: 'shimmer 3s infinite linear'
+                   }}>
+              </div>
+
+              {/* Card chip design element */}
+              <div className="absolute top-4 right-4 w-12 h-12 rounded-md"
+                   style={{
+                     background: 'linear-gradient(45deg, #C19A49 0%, #DFB658 50%, #C19A49 100%)',
+                     border: '1px solid rgba(255,255,255,0.2)'
+                   }}>
+                <div className="w-full h-full rounded-md"
+                     style={{
+                       backgroundImage: 'repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(255,255,255,0.1) 2px, rgba(255,255,255,0.1) 4px)'
+                     }}>
+                </div>
+              </div>
+
+              <div className="relative">
+                <div className="mb-6 mt-4">
+                  <div className="flex items-start gap-4">
+                    <div className="bg-[#000000]/20 backdrop-blur-sm rounded-lg px-4 py-2 inline-block">
+                      <h3 className="text-xl tracking-widest text-white mb-1 font-light uppercase"
+                          style={{ fontFamily: 'Arial, sans-serif', textShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
+                        Designed & Developed by
+                      </h3>
+                      <p className="text-2xl font-bold text-white tracking-wider mb-1"
+                         style={{ fontFamily: 'Arial, sans-serif', textShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
+                        OMKAR NAIK
+                      </p>
+                      <p className="text-sm text-white/90 tracking-wider uppercase"
+                         style={{ fontFamily: 'Arial, sans-serif', textShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
+                        Full Stack Developer
+                      </p>
+                    </div>
+                    
+                    {/* American Express Logo SVG */}
+                    <div className="mt-2">
+                      <img 
+                        src="https://www.cdnlogo.com/logos/a/93/american-express-7200.svg" 
+                        alt="American Express"
+                        className="w-24 h-auto"
+                        style={{
+                          opacity: 1,
+                          mixBlendMode: 'normal'
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-6 pt-4">
+                  <p className="text-center text-xs text-white/80 tracking-wider" 
+                     style={{ fontFamily: 'Arial, sans-serif', textShadow: '0 1px 2px rgba(0,0,0,0.2)' }}>
+                    © 2025 ALL RIGHTS RESERVED
+                  </p>
+                </div>
+              </div>
+
+              {/* Hologram effect */}
+              <div className="absolute bottom-4 left-4 w-12 h-12 rounded-full opacity-50"
+                   style={{
+                     background: 'radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.1) 60%, rgba(255,255,255,0) 100%)'
+                   }}>
+              </div>
+            </div>
+
+            <style jsx>{`
+              @keyframes shimmer {
+                0% { background-position: 200% 0; }
+                100% { background-position: -200% 0; }
+              }
+            `}</style>
           </div>
         </div>
 
