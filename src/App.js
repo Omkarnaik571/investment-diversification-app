@@ -83,23 +83,24 @@ const getResponsiveDimensions = () => {
   
   return {
     pieChart: {
-      innerRadius: isMobile ? 40 : isTablet ? 70 : 100,
-      outerRadius: isMobile ? 70 : isTablet ? 110 : 160,
-      labelRadius: isMobile ? 1.1 : isTablet ? 1.2 : 1.4,
+      innerRadius: isMobile ? 45 : isTablet ? 70 : 100,
+      outerRadius: isMobile ? 75 : isTablet ? 110 : 160,
+      labelRadius: isMobile ? 1.3 : isTablet ? 1.2 : 1.4,
       centerTextSize: isMobile ? 'text-sm' : 'text-2xl',
-      labelBoxWidth: isMobile ? 80 : isTablet ? 100 : 120,
-      fontSize: isMobile ? 9 : isTablet ? 11 : 12
+      labelBoxWidth: isMobile ? 110 : isTablet ? 120 : 140,
+      fontSize: isMobile ? 10 : isTablet ? 11 : 12,
+      labelSpacing: isMobile ? 30 : 20
     },
     barChart: {
       margin: {
         top: 10,
-        right: isMobile ? 60 : isTablet ? 120 : 200,
-        left: isMobile ? 80 : isTablet ? 120 : 160,
+        right: isMobile ? 80 : isTablet ? 120 : 200,
+        left: isMobile ? 90 : isTablet ? 120 : 160,
         bottom: 10
       },
-      barSize: isMobile ? 15 : isTablet ? 25 : 30,
-      fontSize: isMobile ? 9 : isTablet ? 11 : 12,
-      labelWidth: isMobile ? 70 : isTablet ? 100 : 150
+      barSize: isMobile ? 20 : isTablet ? 25 : 30,
+      fontSize: isMobile ? 10 : isTablet ? 11 : 12,
+      labelWidth: isMobile ? 80 : isTablet ? 100 : 150
     }
   };
 };
@@ -625,7 +626,7 @@ const App = () => {
               <div className="relative">
                 <div className="mb-4 sm:mb-6 mt-2 sm:mt-4">
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
-                    <div className="bg-[#000000]/20 backdrop-blur-sm rounded-lg px-3 sm:px-4 py-2 w-full sm:w-auto">
+                    <div className="w-full sm:w-auto">
                       <h3 className="text-base sm:text-xl tracking-wider sm:tracking-widest text-white mb-1 font-light uppercase"
                           style={{ fontFamily: 'Arial, sans-serif', textShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
                         Designed & Developed by
@@ -736,21 +737,22 @@ const App = () => {
 
                         const boxWidth = dimensions.pieChart.labelBoxWidth;
                         const boxX = isLeftSide ? x - boxWidth : x;
+                        const spacing = dimensions.pieChart.labelSpacing;
 
                         return (
                           <g>
                             <rect
                               x={boxX - (isLeftSide ? 0 : 10)}
-                              y={y - 25}
+                              y={y - spacing}
                               width={boxWidth}
-                              height={50}
+                              height={spacing * 2}
                               fill="#1E1E1E"
                               fillOpacity={0.9}
                               rx={4}
                             />
                             <text
                               x={boxX + (isLeftSide ? 5 : -5)}
-                              y={y - 12}
+                              y={y - spacing/2}
                               fill={COLORS.chartColors[index % COLORS.chartColors.length]}
                               textAnchor={textAnchor}
                               fontSize={dimensions.pieChart.fontSize}
@@ -760,12 +762,21 @@ const App = () => {
                             </text>
                             <text
                               x={boxX + (isLeftSide ? 5 : -5)}
-                              y={y + 12}
+                              y={y}
                               fill={COLORS.chartColors[index % COLORS.chartColors.length]}
                               textAnchor={textAnchor}
                               fontSize={dimensions.pieChart.fontSize}
                             >
-                              {formattedPercent}% (₹{formattedValue})
+                              ₹{formattedValue}
+                            </text>
+                            <text
+                              x={boxX + (isLeftSide ? 5 : -5)}
+                              y={y + spacing/2}
+                              fill={COLORS.chartColors[index % COLORS.chartColors.length]}
+                              textAnchor={textAnchor}
+                              fontSize={dimensions.pieChart.fontSize}
+                            >
+                              {formattedPercent}%
                             </text>
                           </g>
                         );
@@ -829,12 +840,9 @@ const App = () => {
               : DUMMY_DATA.categories
             ).map((category, index) => (
               category.subCategories?.length > 0 && (
-                <div key={category.name} className="card bg-[#2D2D2D] rounded-lg p-2 sm:p-4 md:p-6">
+                <div key={category.name} className="card bg-[#2D2D2D] rounded-lg p-2 sm:p-4">
                   <h3 className="text-sm sm:text-lg font-medium mb-2 sm:mb-4 text-white">
                     {category.name} Breakdown
-                    {(!totalAmount || !displayResults?.some(cat => parseFloat(cat.percentage) > 0)) && (
-                      <span className="text-xs sm:text-sm font-normal text-gray-400 ml-2">(Sample Data)</span>
-                    )}
                   </h3>
                   <div className="chart-container overflow-x-hidden overflow-y-auto max-h-[250px] sm:max-h-[400px]">
                     <div style={{ height: Math.max(200, category.subCategories.length * 40) }}>
@@ -878,18 +886,37 @@ const App = () => {
                                 const percent = entry.value.toFixed(1);
                                 const amount = formatIndianCurrency(entry.amount);
                                 return window.innerWidth < 768 
-                                  ? `${percent}%`
-                                  : `${percent}% (₹${amount})`;
+                                  ? `${percent}% | ₹${amount}`
+                                  : `${percent}% | ₹${amount}`;
                               }}
                               position="right"
                               fill="#fff"
                               fontSize={dimensions.barChart.fontSize}
-                              offset={2}
+                              offset={10}
                             />
                           </Bar>
                         </ComposedChart>
                       </ResponsiveContainer>
                     </div>
+                  </div>
+
+                  {/* Add a summary grid below the chart */}
+                  <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {getSubCategoryChartData(category).map((subCat, idx) => (
+                      <div key={idx} className="bg-[#363636] p-2 rounded-md">
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="w-2 h-2 rounded-full"
+                            style={{ backgroundColor: COLORS.chartColors[index] }}
+                          />
+                          <span className="text-sm text-white">{subCat.name}</span>
+                        </div>
+                        <div className="mt-1 pl-4">
+                          <p className="text-purple-400 font-medium">₹{formatIndianCurrency(subCat.amount)}</p>
+                          <p className="text-xs text-gray-400">{subCat.value.toFixed(1)}% of {category.name}</p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )
