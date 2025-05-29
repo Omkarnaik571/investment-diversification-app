@@ -761,8 +761,8 @@ const App = () => {
                          ? "bg-gradient-to-br from-[#1a237e] to-[#283593]" 
                          : "bg-gradient-to-br from-[#4A154B] to-[#2E1437]"
                      }`}>
-                  <h3 className="text-sm sm:text-lg font-medium mb-2 sm:mb-4 text-white flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full" 
+                  <h3 className="text-base sm:text-lg font-medium mb-2 sm:mb-4 text-white flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full" 
                          style={{ 
                            background: category.name === "Mutual Funds" 
                              ? "linear-gradient(135deg, #3949ab, #1a237e)" 
@@ -771,13 +771,18 @@ const App = () => {
                     />
                     {category.name} Breakdown
                   </h3>
-                  <div className="chart-container overflow-x-hidden overflow-y-auto max-h-[250px] sm:max-h-[400px] bg-black/20 rounded-lg p-2">
-                    <div style={{ height: Math.max(200, category.subCategories.length * 40) }}>
+                  <div className="chart-container overflow-x-hidden overflow-y-auto max-h-[200px] sm:max-h-[400px] bg-black/20 rounded-lg p-2">
+                    <div style={{ height: Math.max(180, category.subCategories.length * 35) }}>
                       <ResponsiveContainer width="100%" height="100%">
                         <ComposedChart
                           layout="vertical"
                           data={getSubCategoryChartData(category)}
-                          margin={dimensions.barChart.margin}
+                          margin={{
+                            top: 10,
+                            right: 120,
+                            left: 100,
+                            bottom: 10
+                          }}
                         >
                           <XAxis
                             type="number"
@@ -785,18 +790,18 @@ const App = () => {
                             tickFormatter={(value) => `${value}%`}
                             tick={{ 
                               fill: '#fff',
-                              fontSize: dimensions.barChart.fontSize
+                              fontSize: 10
                             }}
                             tickCount={5}
                           />
                           <YAxis
                             type="category"
                             dataKey="name"
-                            width={dimensions.barChart.labelWidth}
+                            width={90}
                             tick={{
                               fill: '#fff',
-                              fontSize: dimensions.barChart.fontSize,
-                              width: dimensions.barChart.labelWidth - 10,
+                              fontSize: 10,
+                              width: 80,
                               wordWrap: 'break-word'
                             }}
                             interval={0}
@@ -806,7 +811,7 @@ const App = () => {
                             dataKey="value"
                             fill={category.name === "Mutual Funds" ? "#5c6bc0" : "#9C27B0"}
                             radius={[0, 4, 4, 0]}
-                            barSize={dimensions.barChart.barSize}
+                            barSize={20}
                           >
                             <LabelList
                               dataKey={(entry) => {
@@ -816,8 +821,8 @@ const App = () => {
                               }}
                               position="right"
                               fill="#fff"
-                              fontSize={dimensions.barChart.fontSize}
-                              offset={15}
+                              fontSize={10}
+                              offset={5}
                             />
                           </Bar>
                         </ComposedChart>
@@ -825,26 +830,26 @@ const App = () => {
                     </div>
                   </div>
 
-                  {/* Add a summary grid below the chart */}
-                  <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {/* Summary Grid - Mobile Optimized */}
+                  <div className="mt-3 sm:mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {getSubCategoryChartData(category).map((subCat, idx) => (
                       <div key={idx} 
-                           className="bg-black/20 p-3 rounded-md hover:bg-black/30 transition-all duration-300"
+                           className="bg-black/20 p-2 sm:p-3 rounded-md hover:bg-black/30 transition-all duration-300"
                            style={{
-                             borderLeft: `4px solid ${category.name === "Mutual Funds" ? "#5c6bc0" : "#9C27B0"}`
+                             borderLeft: `3px solid ${category.name === "Mutual Funds" ? "#5c6bc0" : "#9C27B0"}`
                            }}>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5">
                           <div 
-                            className="w-2 h-2 rounded-full"
+                            className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full"
                             style={{ 
                               backgroundColor: category.name === "Mutual Funds" ? "#5c6bc0" : "#9C27B0"
                             }}
                           />
-                          <span className="text-sm text-white">{subCat.name}</span>
+                          <span className="text-xs sm:text-sm text-white font-medium">{subCat.name}</span>
                         </div>
-                        <div className="mt-2 pl-4">
-                          <p className="text-lg font-medium text-white">₹{formatIndianCurrency(subCat.amount)}</p>
-                          <p className="text-xs text-gray-300">{subCat.value.toFixed(1)}% of {category.name}</p>
+                        <div className="mt-1.5 sm:mt-2 pl-3 sm:pl-4">
+                          <p className="text-sm sm:text-lg font-medium text-white">₹{formatIndianCurrency(subCat.amount)}</p>
+                          <p className="text-[10px] sm:text-xs text-gray-300">{subCat.value.toFixed(1)}% of {category.name}</p>
                         </div>
                       </div>
                     ))}
