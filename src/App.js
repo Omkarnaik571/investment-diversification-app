@@ -596,7 +596,7 @@ const App = () => {
             ))}
 
             {/* Developer Info and Promotion Section - Amex Gold Card Style */}
-            <div className="mt-4 sm:mt-8 card rounded-lg p-3 sm:p-6 relative overflow-hidden" 
+            <div className="mt-4 sm:mt-8 card rounded-lg p-4 sm:p-8 relative overflow-hidden min-h-[180px] sm:min-h-[250px] md:min-h-[280px] lg:min-h-[300px]" 
                  style={{
                    background: 'linear-gradient(135deg, #DFB658 0%, #C19A49 50%, #DFB658 100%)',
                    boxShadow: '0 10px 20px rgba(0,0,0,0.2)'
@@ -610,43 +610,35 @@ const App = () => {
                    }}>
               </div>
 
-              {/* Card chip design element */}
-              <div className="absolute top-3 sm:top-4 right-3 sm:right-4 w-8 sm:w-12 h-8 sm:h-12 rounded-md"
-                   style={{
-                     background: 'linear-gradient(45deg, #C19A49 0%, #DFB658 50%, #C19A49 100%)',
-                     border: '1px solid rgba(255,255,255,0.2)'
-                   }}>
-                <div className="w-full h-full rounded-md"
-                     style={{
-                       backgroundImage: 'repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(255,255,255,0.1) 2px, rgba(255,255,255,0.1) 4px)'
-                     }}>
-                </div>
-              </div>
-
               <div className="relative">
-                <div className="mb-4 sm:mb-6 mt-2 sm:mt-4">
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
-                    <div className="w-full sm:w-auto">
-                      <h3 className="text-base sm:text-xl tracking-wider sm:tracking-widest text-white mb-1 font-light uppercase"
-                          style={{ fontFamily: 'Arial, sans-serif', textShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
-                        Designed & Developed by
-                      </h3>
-                      <p className="text-xl sm:text-2xl font-bold text-white tracking-wider mb-1"
-                         style={{ fontFamily: 'Arial, sans-serif', textShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
-                        OMKAR NAIK
-                      </p>
-                      <p className="text-xs sm:text-sm text-white/90 tracking-wider uppercase"
-                         style={{ fontFamily: 'Arial, sans-serif', textShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
-                        Full Stack Developer
-                      </p>
-                    </div>
-                    
-                    {/* American Express Logo */}
-                    <div className="flex justify-end w-full sm:w-auto">
+                <div className="mb-4 sm:mb-8">
+                  {/* Text Content */}
+                  <div className="pr-20 sm:pr-32">
+                    <h3 className="text-xl sm:text-2xl lg:text-3xl tracking-wider sm:tracking-widest text-white mb-2 font-light uppercase"
+                        style={{ fontFamily: 'Arial, sans-serif', textShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
+                      Designed & Developed by
+                    </h3>
+                    <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-white tracking-wider mb-2"
+                       style={{ fontFamily: 'Arial, sans-serif', textShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
+                      OMKAR NAIK
+                    </p>
+                    <p className="text-xs sm:text-sm lg:text-base text-white/90 tracking-wider uppercase"
+                       style={{ fontFamily: 'Arial, sans-serif', textShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
+                      Full Stack Developer
+                    </p>
+                  </div>
+
+                  {/* American Express Logo */}
+                  <div className="absolute top-0 sm:top-2 right-2 sm:right-8 md:right-12 lg:right-16 xl:right-20">
+                    <div className="bg-white rounded-full p-1.5 sm:p-2" style={{ 
+                      width: 'auto',
+                      height: 'auto',
+                      transform: 'scale(0.8) sm:scale(1) md:scale(1.1) lg:scale(1.2)',
+                    }}>
                       <img 
                         src="https://www.cdnlogo.com/logos/a/93/american-express-7200.svg" 
                         alt="American Express"
-                        className="w-16 sm:w-24 h-auto"
+                        className="w-12 sm:w-20 md:w-24 lg:w-28 h-auto"
                         style={{
                           opacity: 1,
                           mixBlendMode: 'normal'
@@ -656,8 +648,8 @@ const App = () => {
                   </div>
                 </div>
 
-                <div className="mt-4 sm:mt-6 pt-2 sm:pt-4 border-t border-white/20">
-                  <p className="text-center text-[10px] sm:text-xs text-white/80 tracking-wider" 
+                <div className="mt-8 sm:mt-12 md:mt-16 lg:mt-20 pt-4 sm:pt-6 md:pt-8 lg:pt-10 border-t border-white/20">
+                  <p className="text-center text-[10px] sm:text-xs lg:text-sm text-white/80 tracking-wider" 
                      style={{ fontFamily: 'Arial, sans-serif', textShadow: '0 1px 2px rgba(0,0,0,0.2)' }}>
                     © 2025 ALL RIGHTS RESERVED
                   </p>
@@ -665,7 +657,7 @@ const App = () => {
               </div>
 
               {/* Hologram effect */}
-              <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 w-8 sm:w-12 h-8 sm:h-12 rounded-full opacity-50"
+              <div className="absolute bottom-4 sm:bottom-6 md:bottom-8 lg:bottom-10 left-3 sm:left-4 w-8 sm:w-12 lg:w-14 h-8 sm:h-12 lg:h-14 rounded-full opacity-50"
                    style={{
                      background: 'radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.1) 60%, rgba(255,255,255,0) 100%)'
                    }}>
@@ -701,7 +693,7 @@ const App = () => {
                   <span className="text-xs sm:text-sm font-normal text-gray-400 ml-2">(Sample Data)</span>
                 )}
               </h3>
-              <div className="chart-container w-full h-[200px] sm:h-[300px] md:h-[400px] lg:h-[500px] relative">
+              <div className="chart-container w-full h-[300px] sm:h-[300px] md:h-[400px] lg:h-[500px] relative">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
@@ -735,9 +727,11 @@ const App = () => {
                         const textAnchor = x > cx ? 'start' : 'end';
                         const isLeftSide = x <= cx;
 
-                        const boxWidth = dimensions.pieChart.labelBoxWidth;
+                        // Adjust box width for mobile
+                        const boxWidth = window.innerWidth < 768 ? 90 : dimensions.pieChart.labelBoxWidth;
                         const boxX = isLeftSide ? x - boxWidth : x;
-                        const spacing = dimensions.pieChart.labelSpacing;
+                        const spacing = window.innerWidth < 768 ? 15 : dimensions.pieChart.labelSpacing;
+                        const fontSize = window.innerWidth < 768 ? 8 : dimensions.pieChart.fontSize;
 
                         return (
                           <g>
@@ -755,7 +749,7 @@ const App = () => {
                               y={y - spacing/2}
                               fill={COLORS.chartColors[index % COLORS.chartColors.length]}
                               textAnchor={textAnchor}
-                              fontSize={dimensions.pieChart.fontSize}
+                              fontSize={fontSize}
                               fontWeight="500"
                             >
                               {name}
@@ -765,7 +759,7 @@ const App = () => {
                               y={y}
                               fill={COLORS.chartColors[index % COLORS.chartColors.length]}
                               textAnchor={textAnchor}
-                              fontSize={dimensions.pieChart.fontSize}
+                              fontSize={fontSize}
                             >
                               ₹{formattedValue}
                             </text>
@@ -774,7 +768,7 @@ const App = () => {
                               y={y + spacing/2}
                               fill={COLORS.chartColors[index % COLORS.chartColors.length]}
                               textAnchor={textAnchor}
-                              fontSize={dimensions.pieChart.fontSize}
+                              fontSize={fontSize}
                             >
                               {formattedPercent}%
                             </text>
