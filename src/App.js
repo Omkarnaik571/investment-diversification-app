@@ -76,6 +76,34 @@ const formatIndianCurrency = (amount) => {
   return decimalPart ? `${wholePart}.${decimalPart}` : wholePart;
 };
 
+// Add this function at the top level to handle responsive dimensions
+const getResponsiveDimensions = () => {
+  const isMobile = window.innerWidth < 768;
+  const isTablet = window.innerWidth >= 768 && window.innerWidth < 1024;
+  
+  return {
+    pieChart: {
+      innerRadius: isMobile ? 40 : isTablet ? 70 : 100,
+      outerRadius: isMobile ? 70 : isTablet ? 110 : 160,
+      labelRadius: isMobile ? 1.1 : isTablet ? 1.2 : 1.4,
+      centerTextSize: isMobile ? 'text-sm' : 'text-2xl',
+      labelBoxWidth: isMobile ? 80 : isTablet ? 100 : 120,
+      fontSize: isMobile ? 9 : isTablet ? 11 : 12
+    },
+    barChart: {
+      margin: {
+        top: 10,
+        right: isMobile ? 60 : isTablet ? 120 : 200,
+        left: isMobile ? 80 : isTablet ? 120 : 160,
+        bottom: 10
+      },
+      barSize: isMobile ? 15 : isTablet ? 25 : 30,
+      fontSize: isMobile ? 9 : isTablet ? 11 : 12,
+      labelWidth: isMobile ? 70 : isTablet ? 100 : 150
+    }
+  };
+};
+
 const App = () => {
   const [totalAmount, setTotalAmount] = useState("");
   const [categories, setCategories] = useState([
@@ -101,6 +129,9 @@ const App = () => {
   const [newProfileName, setNewProfileName] = useState("");
   const [validationMessage, setValidationMessage] = useState("");
   const [displayResults, setDisplayResults] = useState(null);
+
+  // Add a state for responsive dimensions
+  const [dimensions, setDimensions] = useState(getResponsiveDimensions());
 
   // Define loadProfile using useCallback
   const loadProfile = useCallback((profileName) => {
@@ -370,6 +401,16 @@ const App = () => {
     window.location.reload();
   };
 
+  // Add resize handler
+  useEffect(() => {
+    const handleResize = () => {
+      setDimensions(getResponsiveDimensions());
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   return (
     <div className="min-h-screen bg-[#121212] text-white relative overflow-hidden">
       <div className="layout-container flex flex-col lg:flex-row gap-4 p-4">
@@ -554,7 +595,7 @@ const App = () => {
             ))}
 
             {/* Developer Info and Promotion Section - Amex Gold Card Style */}
-            <div className="mt-8 card rounded-lg p-6 relative overflow-hidden" 
+            <div className="mt-4 sm:mt-8 card rounded-lg p-3 sm:p-6 relative overflow-hidden" 
                  style={{
                    background: 'linear-gradient(135deg, #DFB658 0%, #C19A49 50%, #DFB658 100%)',
                    boxShadow: '0 10px 20px rgba(0,0,0,0.2)'
@@ -569,7 +610,7 @@ const App = () => {
               </div>
 
               {/* Card chip design element */}
-              <div className="absolute top-4 right-4 w-12 h-12 rounded-md"
+              <div className="absolute top-3 sm:top-4 right-3 sm:right-4 w-8 sm:w-12 h-8 sm:h-12 rounded-md"
                    style={{
                      background: 'linear-gradient(45deg, #C19A49 0%, #DFB658 50%, #C19A49 100%)',
                      border: '1px solid rgba(255,255,255,0.2)'
@@ -582,29 +623,29 @@ const App = () => {
               </div>
 
               <div className="relative">
-                <div className="mb-6 mt-4">
-                  <div className="flex items-start gap-4">
-                    <div className="bg-[#000000]/20 backdrop-blur-sm rounded-lg px-4 py-2 inline-block">
-                      <h3 className="text-xl tracking-widest text-white mb-1 font-light uppercase"
+                <div className="mb-4 sm:mb-6 mt-2 sm:mt-4">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+                    <div className="bg-[#000000]/20 backdrop-blur-sm rounded-lg px-3 sm:px-4 py-2 w-full sm:w-auto">
+                      <h3 className="text-base sm:text-xl tracking-wider sm:tracking-widest text-white mb-1 font-light uppercase"
                           style={{ fontFamily: 'Arial, sans-serif', textShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
                         Designed & Developed by
                       </h3>
-                      <p className="text-2xl font-bold text-white tracking-wider mb-1"
+                      <p className="text-xl sm:text-2xl font-bold text-white tracking-wider mb-1"
                          style={{ fontFamily: 'Arial, sans-serif', textShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
                         OMKAR NAIK
                       </p>
-                      <p className="text-sm text-white/90 tracking-wider uppercase"
+                      <p className="text-xs sm:text-sm text-white/90 tracking-wider uppercase"
                          style={{ fontFamily: 'Arial, sans-serif', textShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
                         Full Stack Developer
                       </p>
                     </div>
                     
-                    {/* American Express Logo SVG */}
-                    <div className="mt-2">
+                    {/* American Express Logo */}
+                    <div className="flex justify-end w-full sm:w-auto">
                       <img 
                         src="https://www.cdnlogo.com/logos/a/93/american-express-7200.svg" 
                         alt="American Express"
-                        className="w-24 h-auto"
+                        className="w-16 sm:w-24 h-auto"
                         style={{
                           opacity: 1,
                           mixBlendMode: 'normal'
@@ -614,8 +655,8 @@ const App = () => {
                   </div>
                 </div>
 
-                <div className="mt-6 pt-4">
-                  <p className="text-center text-xs text-white/80 tracking-wider" 
+                <div className="mt-4 sm:mt-6 pt-2 sm:pt-4 border-t border-white/20">
+                  <p className="text-center text-[10px] sm:text-xs text-white/80 tracking-wider" 
                      style={{ fontFamily: 'Arial, sans-serif', textShadow: '0 1px 2px rgba(0,0,0,0.2)' }}>
                     © 2025 ALL RIGHTS RESERVED
                   </p>
@@ -623,7 +664,7 @@ const App = () => {
               </div>
 
               {/* Hologram effect */}
-              <div className="absolute bottom-4 left-4 w-12 h-12 rounded-full opacity-50"
+              <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 w-8 sm:w-12 h-8 sm:h-12 rounded-full opacity-50"
                    style={{
                      background: 'radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.1) 60%, rgba(255,255,255,0) 100%)'
                    }}>
@@ -652,14 +693,14 @@ const App = () => {
           
           <div className="panel-content space-y-6">
             {/* Main Categories Chart */}
-            <div className="card bg-[#2D2D2D] rounded-lg p-4 sm:p-6">
-              <h3 className="text-base sm:text-lg font-medium mb-4 sm:mb-6 text-white">
+            <div className="card bg-[#2D2D2D] rounded-lg p-2 sm:p-4 md:p-6">
+              <h3 className="text-sm sm:text-lg font-medium mb-2 sm:mb-4 text-white">
                 Portfolio Distribution
                 {(!totalAmount || !displayResults?.some(cat => parseFloat(cat.percentage) > 0)) && (
-                  <span className="text-sm font-normal text-gray-400 ml-2">(Sample Data)</span>
+                  <span className="text-xs sm:text-sm font-normal text-gray-400 ml-2">(Sample Data)</span>
                 )}
               </h3>
-              <div className="chart-container h-[300px] sm:h-[400px] md:h-[500px] relative">
+              <div className="chart-container w-full h-[200px] sm:h-[300px] md:h-[400px] lg:h-[500px] relative">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
@@ -668,15 +709,11 @@ const App = () => {
                         : DUMMY_DATA.categories}
                       cx="50%"
                       cy="50%"
-                      innerRadius={100}
-                      outerRadius={160}
-                      paddingAngle={8}
+                      innerRadius={dimensions.pieChart.innerRadius}
+                      outerRadius={dimensions.pieChart.outerRadius}
+                      paddingAngle={4}
                       dataKey="amount"
-                      labelLine={{
-                        stroke: '#666',
-                        strokeWidth: 1,
-                        strokeDasharray: '2 2'
-                      }}
+                      labelLine={false}
                       label={({
                         cx,
                         cy,
@@ -688,7 +725,7 @@ const App = () => {
                         percent
                       }) => {
                         const RADIAN = Math.PI / 180;
-                        const radius = outerRadius * 1.4;
+                        const radius = outerRadius * dimensions.pieChart.labelRadius;
                         const x = cx + radius * Math.cos(-midAngle * RADIAN);
                         const y = cy + radius * Math.sin(-midAngle * RADIAN);
                         const name = payload.name;
@@ -697,56 +734,38 @@ const App = () => {
                         const textAnchor = x > cx ? 'start' : 'end';
                         const isLeftSide = x <= cx;
 
-                        const boxX = isLeftSide ? x - 120 : x;
-                        const nameY = y - 20;
-                        const amountY = y;
-                        const percentY = y + 20;
+                        const boxWidth = dimensions.pieChart.labelBoxWidth;
+                        const boxX = isLeftSide ? x - boxWidth : x;
 
                         return (
                           <g>
-                            <path
-                              d={`M${x > cx ? x - 10 : x + 10},${y}L${x > cx ? x - 30 : x + 30},${y}`}
-                              stroke={COLORS.chartColors[index % COLORS.chartColors.length]}
-                              fill="none"
-                            />
                             <rect
                               x={boxX - (isLeftSide ? 0 : 10)}
-                              y={nameY - 10}
-                              width={120}
-                              height={60}
+                              y={y - 25}
+                              width={boxWidth}
+                              height={50}
                               fill="#1E1E1E"
-                              fillOpacity={0.8}
+                              fillOpacity={0.9}
                               rx={4}
                             />
                             <text
-                              x={boxX + (isLeftSide ? 10 : 0)}
-                              y={nameY}
+                              x={boxX + (isLeftSide ? 5 : -5)}
+                              y={y - 12}
                               fill={COLORS.chartColors[index % COLORS.chartColors.length]}
                               textAnchor={textAnchor}
-                              dominantBaseline="central"
-                              className="text-sm font-medium"
+                              fontSize={dimensions.pieChart.fontSize}
+                              fontWeight="500"
                             >
                               {name}
                             </text>
                             <text
-                              x={boxX + (isLeftSide ? 10 : 0)}
-                              y={amountY}
+                              x={boxX + (isLeftSide ? 5 : -5)}
+                              y={y + 12}
                               fill={COLORS.chartColors[index % COLORS.chartColors.length]}
                               textAnchor={textAnchor}
-                              dominantBaseline="central"
-                              className="text-xs"
+                              fontSize={dimensions.pieChart.fontSize}
                             >
-                              ₹{formattedValue}
-                            </text>
-                            <text
-                              x={boxX + (isLeftSide ? 10 : 0)}
-                              y={percentY}
-                              fill={COLORS.chartColors[index % COLORS.chartColors.length]}
-                              textAnchor={textAnchor}
-                              dominantBaseline="central"
-                              className="text-xs"
-                            >
-                              {formattedPercent}%
+                              {formattedPercent}% (₹{formattedValue})
                             </text>
                           </g>
                         );
@@ -769,131 +788,107 @@ const App = () => {
                 
                 {/* Center Text */}
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div className="text-center bg-[#1E1E1E80] p-4 rounded-full backdrop-blur-sm">
-                    <p className="text-gray-300 text-sm">Total Investment</p>
-                    <p className="text-2xl font-bold text-white">
-                      ₹{(!totalAmount || !displayResults?.some(cat => parseFloat(cat.percentage) > 0))
-                        ? formatIndianCurrency(DUMMY_DATA.totalAmount)
-                        : formatIndianCurrency(totalAmount)}
+                  <div className="text-center bg-[#1E1E1E80] p-2 sm:p-3 rounded-full backdrop-blur-sm">
+                    <p className="text-xs sm:text-sm text-gray-300">Total Investment</p>
+                    <p className={`${dimensions.pieChart.centerTextSize} font-bold text-white`}>
+                      ₹{formatIndianCurrency(totalAmount || DUMMY_DATA.totalAmount)}
                     </p>
                   </div>
                 </div>
               </div>
-
-              {/* Amount Summary - Made responsive */}
-              <div className="mt-4 sm:mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {(displayResults?.some(cat => parseFloat(cat.percentage) > 0)
-                  ? getPieChartData(displayResults)
-                  : DUMMY_DATA.categories
-                ).map((category, index) => (
-                  <div 
-                    key={index} 
-                    className="bg-[#363636] rounded-lg p-4 transition-all hover:bg-[#404040]"
-                  >
-                    <div className="flex items-center gap-2">
-                      <div 
-                        className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: COLORS.chartColors[index % COLORS.chartColors.length] }}
-                      />
-                      <h4 className="text-white font-medium">{category.name}</h4>
-                    </div>
-                    <p className="text-xl sm:text-2xl font-bold text-purple-400 mt-2">
-                      ₹{formatIndianCurrency(category.amount)}
-                    </p>
-                    <p className="text-sm text-gray-400">{category.value}% of portfolio</p>
-                  </div>
-                ))}
-              </div>
             </div>
 
-            {/* Sub-categories Visualization - Made responsive */}
+            {/* Amount Summary - Made responsive */}
+            <div className="mt-4 sm:mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {(displayResults?.some(cat => parseFloat(cat.percentage) > 0)
+                ? getPieChartData(displayResults)
+                : DUMMY_DATA.categories
+              ).map((category, index) => (
+                <div 
+                  key={index} 
+                  className="bg-[#363636] rounded-lg p-4 transition-all hover:bg-[#404040]"
+                >
+                  <div className="flex items-center gap-2">
+                    <div 
+                      className="w-3 h-3 rounded-full"
+                      style={{ backgroundColor: COLORS.chartColors[index % COLORS.chartColors.length] }}
+                    />
+                    <h4 className="text-white font-medium">{category.name}</h4>
+                  </div>
+                  <p className="text-xl sm:text-2xl font-bold text-purple-400 mt-2">
+                    ₹{formatIndianCurrency(category.amount)}
+                  </p>
+                  <p className="text-sm text-gray-400">{category.value}% of portfolio</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Sub-categories Visualization - Made more responsive */}
             {(displayResults?.some(cat => parseFloat(cat.percentage) > 0)
               ? displayResults
               : DUMMY_DATA.categories
             ).map((category, index) => (
               category.subCategories?.length > 0 && (
-                <div key={category.name} className="card bg-[#2D2D2D] rounded-lg p-4 sm:p-6">
-                  <h3 className="text-base sm:text-lg font-medium mb-4 sm:mb-6 text-white">
+                <div key={category.name} className="card bg-[#2D2D2D] rounded-lg p-2 sm:p-4 md:p-6">
+                  <h3 className="text-sm sm:text-lg font-medium mb-2 sm:mb-4 text-white">
                     {category.name} Breakdown
                     {(!totalAmount || !displayResults?.some(cat => parseFloat(cat.percentage) > 0)) && (
-                      <span className="text-sm font-normal text-gray-400 ml-2">(Sample Data)</span>
+                      <span className="text-xs sm:text-sm font-normal text-gray-400 ml-2">(Sample Data)</span>
                     )}
                   </h3>
-                  <div className="sub-category-visualization">
-                    <div className="category-visualization flex flex-col">
-                      <div className="chart-container overflow-x-auto sm:overflow-x-visible overflow-y-auto max-h-[400px] sm:max-h-[600px] pr-2 sm:pr-4" style={{ scrollbarWidth: 'thin' }}>
-                        <div style={{ height: Math.max(300, category.subCategories.length * 60) }}>
-                          <ResponsiveContainer width="100%" height="100%">
-                            <ComposedChart
-                              layout="vertical"
-                              data={getSubCategoryChartData(category)}
-                              margin={{ top: 10, right: 200, left: 160, bottom: 10 }}
-                            >
-                              <XAxis 
-                                type="number"
-                                domain={[0, 100]}
-                                tickFormatter={(value) => `${value}%`}
-                                tick={{ fill: '#fff', fontSize: 12 }}
-                              />
-                              <YAxis
-                                type="category"
-                                dataKey="name"
-                                width={150}
-                                tick={{ 
-                                  fill: '#fff', 
-                                  fontSize: 12,
-                                  width: 140,
-                                  wordWrap: 'break-word'
-                                }}
-                                interval={0}
-                              />
-                              <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#444" />
-                              <Bar
-                                dataKey="value"
-                                fill={COLORS.chartColors[index]}
-                                radius={[0, 4, 4, 0]}
-                                barSize={30}
-                              >
-                                <LabelList
-                                  dataKey={(entry) => {
-                                    const percent = entry.value.toFixed(1);
-                                    const amount = formatIndianCurrency(entry.amount);
-                                    return `${percent}% (₹${amount})`;
-                                  }}
-                                  position="right"
-                                  fill="#fff"
-                                  fontSize={12}
-                                  offset={10}
-                                />
-                              </Bar>
-                            </ComposedChart>
-                          </ResponsiveContainer>
-                        </div>
-                      </div>
-                      
-                      {/* Summary Grid - Made responsive */}
-                      <div className="mt-4 sm:mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                        {getSubCategoryChartData(category)
-                          .sort((a, b) => b.value - a.value)
-                          .map((subCat, subIndex) => (
-                            <div key={subIndex} className="bg-[#363636] rounded-lg p-4 transition-all hover:bg-[#404040]">
-                              <div className="flex items-center gap-2">
-                                <div 
-                                  className="w-2 h-2 rounded-full"
-                                  style={{ 
-                                    backgroundColor: COLORS.chartColors[index],
-                                    opacity: 0.6 + (0.4 * (1 - subIndex / category.subCategories.length))
-                                  }}
-                                />
-                                <h4 className="text-white font-medium break-words">{subCat.name}</h4>
-                              </div>
-                              <p className="text-lg sm:text-xl font-bold text-purple-400 mt-2">
-                                ₹{formatIndianCurrency(subCat.amount)}
-                              </p>
-                              <p className="text-sm text-gray-400">{subCat.value.toFixed(1)}% of {category.name}</p>
-                            </div>
-                          ))}
-                      </div>
+                  <div className="chart-container overflow-x-hidden overflow-y-auto max-h-[250px] sm:max-h-[400px]">
+                    <div style={{ height: Math.max(200, category.subCategories.length * 40) }}>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <ComposedChart
+                          layout="vertical"
+                          data={getSubCategoryChartData(category)}
+                          margin={dimensions.barChart.margin}
+                        >
+                          <XAxis
+                            type="number"
+                            domain={[0, 100]}
+                            tickFormatter={(value) => `${value}%`}
+                            tick={{ 
+                              fill: '#fff',
+                              fontSize: dimensions.barChart.fontSize
+                            }}
+                            tickCount={5}
+                          />
+                          <YAxis
+                            type="category"
+                            dataKey="name"
+                            width={dimensions.barChart.labelWidth}
+                            tick={{
+                              fill: '#fff',
+                              fontSize: dimensions.barChart.fontSize,
+                              width: dimensions.barChart.labelWidth - 10,
+                              wordWrap: 'break-word'
+                            }}
+                            interval={0}
+                          />
+                          <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#444" />
+                          <Bar
+                            dataKey="value"
+                            fill={COLORS.chartColors[index]}
+                            radius={[0, 4, 4, 0]}
+                            barSize={dimensions.barChart.barSize}
+                          >
+                            <LabelList
+                              dataKey={(entry) => {
+                                const percent = entry.value.toFixed(1);
+                                const amount = formatIndianCurrency(entry.amount);
+                                return window.innerWidth < 768 
+                                  ? `${percent}%`
+                                  : `${percent}% (₹${amount})`;
+                              }}
+                              position="right"
+                              fill="#fff"
+                              fontSize={dimensions.barChart.fontSize}
+                              offset={2}
+                            />
+                          </Bar>
+                        </ComposedChart>
+                      </ResponsiveContainer>
                     </div>
                   </div>
                 </div>
