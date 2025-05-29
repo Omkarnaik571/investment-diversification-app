@@ -11,12 +11,12 @@ const COLORS = {
   surface: '#ffffff',
   background: '#F5F7FA',
   chartColors: [
-    '#1E88E5',  // Blue
-    '#00C853',  // Green
-    '#FF4081',  // Pink
-    '#FFC107',  // Amber
-    '#7C4DFF',  // Deep Purple
-    '#00BCD4',  // Cyan
+    ['#2196F3', '#1565C0'],  // Blue gradient
+    ['#00E676', '#00C853'],  // Green gradient
+    ['#FF4081', '#C2185B'],  // Pink gradient
+    ['#FFC107', '#FFA000'],  // Amber gradient
+    ['#7C4DFF', '#651FFF'],  // Deep Purple gradient
+    ['#00BCD4', '#0097A7'],  // Cyan gradient
   ]
 };
 
@@ -83,24 +83,24 @@ const getResponsiveDimensions = () => {
   
   return {
     pieChart: {
-      innerRadius: isMobile ? 45 : isTablet ? 70 : 100,
-      outerRadius: isMobile ? 75 : isTablet ? 110 : 160,
-      labelRadius: isMobile ? 1.4 : isTablet ? 1.3 : 1.4,
+      innerRadius: isMobile ? 40 : isTablet ? 60 : 80,
+      outerRadius: isMobile ? 55 : isTablet ? 75 : 90,
+      labelRadius: isMobile ? 1.6 : isTablet ? 1.5 : 1.6,
       centerTextSize: isMobile ? 'text-sm' : 'text-2xl',
-      labelBoxWidth: isMobile ? 140 : isTablet ? 160 : 180,
+      labelBoxWidth: isMobile ? 160 : isTablet ? 180 : 200,
       fontSize: isMobile ? 11 : isTablet ? 12 : 13,
-      labelSpacing: isMobile ? 25 : 20
+      labelSpacing: 22
     },
     barChart: {
       margin: {
         top: 20,
-        right: isMobile ? 140 : isTablet ? 160 : 200,
-        left: isMobile ? 100 : isTablet ? 120 : 160,
+        right: isMobile ? 180 : isTablet ? 200 : 240,
+        left: isMobile ? 140 : isTablet ? 160 : 180,
         bottom: 20
       },
-      barSize: isMobile ? 25 : isTablet ? 30 : 35,
-      fontSize: isMobile ? 11 : isTablet ? 12 : 13,
-      labelWidth: isMobile ? 90 : isTablet ? 110 : 150
+      barSize: isMobile ? 20 : isTablet ? 25 : 30,
+      fontSize: isMobile ? 10 : isTablet ? 11 : 12,
+      labelWidth: isMobile ? 130 : isTablet ? 150 : 170
     }
   };
 };
@@ -685,159 +685,93 @@ const App = () => {
           </div>
           
           <div className="panel-content space-y-6">
-            {/* Main Categories Chart */}
-            <div className="card bg-[#2D2D2D] rounded-lg p-2 sm:p-4 md:p-6">
-              <h3 className="text-sm sm:text-lg font-medium mb-2 sm:mb-4 text-white">
+            {/* Portfolio Distribution Chart */}
+            <div className="card bg-[#2D2D2D] rounded-lg p-4 sm:p-6 md:p-8">
+              <h3 className="text-sm sm:text-lg font-medium mb-4 sm:mb-6 text-white">
                 Portfolio Distribution
                 {(!totalAmount || !displayResults?.some(cat => parseFloat(cat.percentage) > 0)) && (
                   <span className="text-xs sm:text-sm font-normal text-gray-400 ml-2">(Sample Data)</span>
                 )}
               </h3>
-              <div className="chart-container w-full h-[300px] sm:h-[300px] md:h-[400px] lg:h-[500px] relative">
+              <div className="chart-container w-full h-[400px] sm:h-[450px] md:h-[500px] lg:h-[550px] relative">
                 <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={displayResults?.some(cat => parseFloat(cat.percentage) > 0) 
-                        ? getPieChartData(displayResults)
-                        : DUMMY_DATA.categories}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={dimensions.pieChart.innerRadius}
-                      outerRadius={dimensions.pieChart.outerRadius}
-                      paddingAngle={4}
-                      dataKey="amount"
-                      labelLine={false}
-                      label={({
-                        cx,
-                        cy,
-                        midAngle,
-                        outerRadius,
-                        value,
-                        index,
-                        payload,
-                        percent
-                      }) => {
-                        const RADIAN = Math.PI / 180;
-                        const radius = outerRadius * dimensions.pieChart.labelRadius;
-                        const x = cx + radius * Math.cos(-midAngle * RADIAN);
-                        const y = cy + radius * Math.sin(-midAngle * RADIAN);
-                        const name = payload.name;
-                        const formattedValue = formatIndianCurrency(value);
-                        const formattedPercent = (percent * 100).toFixed(1);
-                        const textAnchor = x > cx ? 'start' : 'end';
-                        const isLeftSide = x <= cx;
-
-                        const boxWidth = dimensions.pieChart.labelBoxWidth;
-                        const boxX = isLeftSide ? x - boxWidth : x;
-                        const spacing = dimensions.pieChart.labelSpacing;
-                        const fontSize = dimensions.pieChart.fontSize;
-
-                        return (
-                          <g>
-                            <rect
-                              x={boxX - (isLeftSide ? 0 : 10)}
-                              y={y - spacing * 1.5}
-                              width={boxWidth}
-                              height={spacing * 3}
-                              fill="#1E1E1E"
-                              fillOpacity={0.95}
-                              rx={4}
-                            />
-                            <text
-                              x={boxX + (isLeftSide ? 5 : -5)}
-                              y={y - spacing}
-                              fill={COLORS.chartColors[index % COLORS.chartColors.length]}
-                              textAnchor={textAnchor}
-                              fontSize={fontSize}
-                              fontWeight="500"
-                            >
-                              {name}
-                            </text>
-                            <text
-                              x={boxX + (isLeftSide ? 5 : -5)}
-                              y={y}
-                              fill={COLORS.chartColors[index % COLORS.chartColors.length]}
-                              textAnchor={textAnchor}
-                              fontSize={fontSize}
-                            >
-                              ₹{formattedValue}
-                            </text>
-                            <text
-                              x={boxX + (isLeftSide ? 5 : -5)}
-                              y={y + spacing}
-                              fill={COLORS.chartColors[index % COLORS.chartColors.length]}
-                              textAnchor={textAnchor}
-                              fontSize={fontSize}
-                            >
-                              {formattedPercent}%
-                            </text>
-                          </g>
-                        );
-                      }}
+                  <ComposedChart
+                    data={displayResults?.some(cat => parseFloat(cat.percentage) > 0) 
+                      ? getPieChartData(displayResults)
+                      : DUMMY_DATA.categories}
+                  >
+                    <defs>
+                      {COLORS.chartColors.map((gradient, index) => (
+                        <linearGradient key={`gradient-${index}`} id={`gradient-${index}`} x1="0" y1="0" x2="1" y2="1">
+                          <stop offset="0%" stopColor={gradient[0]} />
+                          <stop offset="100%" stopColor={gradient[1]} />
+                        </linearGradient>
+                      ))}
+                    </defs>
+                    <XAxis 
+                      dataKey="name" 
+                      tick={{ fill: '#fff', fontSize: 14 }}
+                      axisLine={{ stroke: '#444' }}
+                      tickLine={{ stroke: '#444' }}
+                    />
+                    <YAxis 
+                      domain={[0, 100]}
+                      tickFormatter={(value) => `${value}%`}
+                      tick={{ fill: '#fff', fontSize: 12 }}
+                      axisLine={{ stroke: '#444' }}
+                      tickLine={{ stroke: '#444' }}
+                    />
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                    <Bar
+                      dataKey="value"
+                      radius={[8, 8, 0, 0]}
+                      maxBarSize={100}
                     >
                       {(displayResults?.some(cat => parseFloat(cat.percentage) > 0) 
                         ? getPieChartData(displayResults)
                         : DUMMY_DATA.categories
                       ).map((entry, index) => (
                         <Cell 
-                          key={`cell-${index}`} 
-                          fill={COLORS.chartColors[index % COLORS.chartColors.length]}
-                          stroke="#1E1E1E"
-                          strokeWidth={2}
+                          key={`cell-${index}`}
+                          fill={`url(#gradient-${index})`}
                         />
                       ))}
-                    </Pie>
-                  </PieChart>
+                      <LabelList
+                        dataKey={(entry) => `${entry.value}% | ₹${formatIndianCurrency(entry.amount)}`}
+                        position="top"
+                        fill="#fff"
+                        fontSize={12}
+                        offset={10}
+                      />
+                    </Bar>
+                  </ComposedChart>
                 </ResponsiveContainer>
-                
-                {/* Center Text */}
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div className="text-center bg-[#1E1E1E80] p-2 sm:p-3 rounded-full backdrop-blur-sm">
-                    <p className="text-xs sm:text-sm text-gray-300">Total Investment</p>
-                    <p className={`${dimensions.pieChart.centerTextSize} font-bold text-white`}>
-                      ₹{formatIndianCurrency(totalAmount || DUMMY_DATA.totalAmount)}
-                    </p>
-                  </div>
-                </div>
               </div>
             </div>
 
-            {/* Amount Summary - Made responsive */}
-            <div className="mt-4 sm:mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {(displayResults?.some(cat => parseFloat(cat.percentage) > 0)
-                ? getPieChartData(displayResults)
-                : DUMMY_DATA.categories
-              ).map((category, index) => (
-                <div 
-                  key={index} 
-                  className="bg-[#363636] rounded-lg p-4 transition-all hover:bg-[#404040]"
-                >
-                  <div className="flex items-center gap-2">
-                    <div 
-                      className="w-3 h-3 rounded-full"
-                      style={{ backgroundColor: COLORS.chartColors[index % COLORS.chartColors.length] }}
-                    />
-                    <h4 className="text-white font-medium">{category.name}</h4>
-                  </div>
-                  <p className="text-xl sm:text-2xl font-bold text-purple-400 mt-2">
-                    ₹{formatIndianCurrency(category.amount)}
-                  </p>
-                  <p className="text-sm text-gray-400">{category.value}% of portfolio</p>
-                </div>
-              ))}
-            </div>
-
-            {/* Sub-categories Visualization - Made more responsive */}
+            {/* Sub-categories Visualization */}
             {(displayResults?.some(cat => parseFloat(cat.percentage) > 0)
               ? displayResults
               : DUMMY_DATA.categories
             ).map((category, index) => (
               category.subCategories?.length > 0 && (
-                <div key={category.name} className="card bg-[#2D2D2D] rounded-lg p-2 sm:p-4">
-                  <h3 className="text-sm sm:text-lg font-medium mb-2 sm:mb-4 text-white">
+                <div key={category.name} 
+                     className={`card rounded-lg p-2 sm:p-4 transition-all duration-300 ${
+                       category.name === "Mutual Funds" 
+                         ? "bg-gradient-to-br from-[#1a237e] to-[#283593]" 
+                         : "bg-gradient-to-br from-[#4A154B] to-[#2E1437]"
+                     }`}>
+                  <h3 className="text-sm sm:text-lg font-medium mb-2 sm:mb-4 text-white flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full" 
+                         style={{ 
+                           background: category.name === "Mutual Funds" 
+                             ? "linear-gradient(135deg, #3949ab, #1a237e)" 
+                             : "linear-gradient(135deg, #9C27B0, #4A154B)" 
+                         }} 
+                    />
                     {category.name} Breakdown
                   </h3>
-                  <div className="chart-container overflow-x-hidden overflow-y-auto max-h-[250px] sm:max-h-[400px]">
+                  <div className="chart-container overflow-x-hidden overflow-y-auto max-h-[250px] sm:max-h-[400px] bg-black/20 rounded-lg p-2">
                     <div style={{ height: Math.max(200, category.subCategories.length * 40) }}>
                       <ResponsiveContainer width="100%" height="100%">
                         <ComposedChart
@@ -867,10 +801,10 @@ const App = () => {
                             }}
                             interval={0}
                           />
-                          <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#444" />
+                          <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="rgba(255,255,255,0.1)" />
                           <Bar
                             dataKey="value"
-                            fill={COLORS.chartColors[index]}
+                            fill={category.name === "Mutual Funds" ? "#5c6bc0" : "#9C27B0"}
                             radius={[0, 4, 4, 0]}
                             barSize={dimensions.barChart.barSize}
                           >
@@ -894,17 +828,23 @@ const App = () => {
                   {/* Add a summary grid below the chart */}
                   <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {getSubCategoryChartData(category).map((subCat, idx) => (
-                      <div key={idx} className="bg-[#363636] p-2 rounded-md">
+                      <div key={idx} 
+                           className="bg-black/20 p-3 rounded-md hover:bg-black/30 transition-all duration-300"
+                           style={{
+                             borderLeft: `4px solid ${category.name === "Mutual Funds" ? "#5c6bc0" : "#9C27B0"}`
+                           }}>
                         <div className="flex items-center gap-2">
                           <div 
                             className="w-2 h-2 rounded-full"
-                            style={{ backgroundColor: COLORS.chartColors[index] }}
+                            style={{ 
+                              backgroundColor: category.name === "Mutual Funds" ? "#5c6bc0" : "#9C27B0"
+                            }}
                           />
                           <span className="text-sm text-white">{subCat.name}</span>
                         </div>
-                        <div className="mt-1 pl-4">
-                          <p className="text-purple-400 font-medium">₹{formatIndianCurrency(subCat.amount)}</p>
-                          <p className="text-xs text-gray-400">{subCat.value.toFixed(1)}% of {category.name}</p>
+                        <div className="mt-2 pl-4">
+                          <p className="text-lg font-medium text-white">₹{formatIndianCurrency(subCat.amount)}</p>
+                          <p className="text-xs text-gray-300">{subCat.value.toFixed(1)}% of {category.name}</p>
                         </div>
                       </div>
                     ))}
