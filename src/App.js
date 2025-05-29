@@ -417,7 +417,7 @@ const App = () => {
         {/* Left Panel - Made responsive */}
         <div className="panel w-full lg:w-[40%] bg-[#1E1E1E] rounded-lg p-4">
           <div className="panel-header mb-6">
-            <h1 className="title text-xl sm:text-2xl font-bold text-purple-400">Investment Diversification</h1>
+            <h1 className="title text-xl sm:text-2xl font-bold text-purple-400">AssetAllocate Pro</h1>
           </div>
           
           <div className="panel-content space-y-4">
